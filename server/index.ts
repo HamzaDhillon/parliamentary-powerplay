@@ -1,4 +1,4 @@
-// server.ts
+// index.ts
 import type { ServerWebSocket } from "bun";
 
 // Define what "data" lives inside the socket
@@ -8,7 +8,12 @@ interface SocketData {
 }
 
 const server = Bun.serve<SocketData>({
-  port: 3000,
+  // FIX 1: Use the PORT environment variable provided by Railway
+  port: process.env.PORT || 3000,
+  
+  // FIX 2: Bind to 0.0.0.0 so the outside world can reach the container
+  hostname: "0.0.0.0", 
+
   fetch(req: Request, server) {
     const url = new URL(req.url);
     const lobbyId = url.searchParams.get("lobbyId");
@@ -22,27 +27,24 @@ const server = Bun.serve<SocketData>({
         ? undefined
         : new Response("Upgrade failed", { status: 400 });
     }
-    return new Response("Parliament Server");
+    
+    // This is helpful for debugging; if you see this in your browser, the server is live!
+    return new Response("Parliament Server is Online");
   },
   websocket: {
     open(ws: ServerWebSocket<SocketData>) {
       const { lobbyId } = ws.data;
       ws.subscribe(lobbyId);
-      console.log(`Leader joined: ${ws.data.playerName}`);
+      console.log(`Leader joined lobby ${lobbyId}: ${ws.data.playerName}`);
     },
     message(ws: ServerWebSocket<SocketData>, message: string | Buffer) {
       const { lobbyId } = ws.data;
-
-      // Note: If you don't need to validate the JSON structure yet,
-      // we remove the parsing logic to satisfy the "unused variable" error.
-      // Simply broadcast the raw message to the lobby.
       server.publish(lobbyId, message);
     },
-    // Prefixing with _ tells TypeScript this is intentionally unused
     close(_ws: ServerWebSocket<SocketData>) {
       console.log("Leader left");
     },
   },
 });
 
-console.log(`Server running on ${server.port}`);
+console.log(`Server running on port: ${server.port}`);
