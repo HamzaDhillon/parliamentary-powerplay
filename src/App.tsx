@@ -573,73 +573,86 @@ export default function App() {
       {/* ══════════════════════════════════════════════════════════════════════
           LOBBY — only shown before entering the game
       ══════════════════════════════════════════════════════════════════════ */}
+
       {!inGame && (
-        <div className="bg-white p-8 rounded-2xl shadow-xl border border-green-100 w-full max-w-md space-y-5">
-          <div>
-            <label className="block text-xs font-bold text-green-600 uppercase mb-2">
-              Leader Name
-            </label>
-            <input
-              type="text"
-              value={playerName}
-              onChange={(e) => setPlayerName(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleCreateGame()}
-              className="w-full bg-green-50 border border-green-200 p-3 rounded-xl text-center outline-none focus:ring-2 focus:ring-green-400 font-semibold"
-              placeholder="Your Name"
-            />
-          </div>
-
-          <div>
-            <label className="block text-xs font-bold text-green-600 uppercase mb-2">
-              Room Size (when creating)
-            </label>
-            <div className="grid grid-cols-3 gap-2">
-              {([3, 4, 5] as const).map((n) => (
-                <button
-                  key={n}
-                  onClick={() => setPlayerCount(n)}
-                  className={`py-2 rounded-xl font-black text-sm border-2 transition-all ${
-                    playerCount === n
-                      ? "border-green-600 bg-green-600 text-white"
-                      : "border-green-200 text-green-700 hover:border-green-400"
-                  }`}
-                >
-                  {n} Players
-                </button>
-              ))}
+        <div className="bg-white p-8 rounded-2xl shadow-xl border border-green-100 w-full max-w-xl space-y-5">
+          {/* ── Row 1: Name + Room Code side by side ── */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-bold text-green-600 uppercase mb-2">
+                Leader Name
+              </label>
+              <input
+                type="text"
+                value={playerName}
+                onChange={(e) => setPlayerName(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleCreateGame()}
+                className="w-full bg-green-50 border border-green-200 p-3 rounded-xl text-center outline-none focus:ring-2 focus:ring-green-400 font-semibold"
+                placeholder="Your Name"
+              />
             </div>
-            <p className="text-[10px] text-slate-400 mt-1 text-center">
-              {TOTAL_SEATS} seats randomly distributed across that many parties.
-            </p>
+
+            <div>
+              <label className="block text-xs font-bold text-green-600 uppercase mb-2">
+                Join Code
+              </label>
+              <input
+                type="text"
+                value={inputCode}
+                onChange={(e) => setInputCode(e.target.value.toUpperCase())}
+                className="w-full bg-green-50 border border-green-200 p-3 rounded-xl text-center tracking-widest outline-none focus:ring-2 focus:ring-green-400 font-semibold uppercase"
+                placeholder="XXXX"
+                maxLength={4}
+              />
+            </div>
           </div>
 
-          <button
-            onClick={handleCreateGame}
-            className="w-full bg-green-600 text-white py-3 rounded-xl font-semibold shadow-md hover:bg-green-700 transition-all"
-          >
-            Create Session
-          </button>
+          {/* ── Room Size — only shown when NOT joining ── */}
+          {!inputCode.trim() && (
+            <div>
+              <label className="block text-xs font-bold text-green-600 uppercase mb-2">
+                Room Size
+              </label>
+              <div className="grid grid-cols-3 gap-2">
+                {([3, 4, 5] as const).map((n) => (
+                  <button
+                    key={n}
+                    onClick={() => setPlayerCount(n)}
+                    className={`py-2 rounded-xl font-black text-sm border-2 transition-all ${
+                      playerCount === n
+                        ? "border-green-600 bg-green-600 text-white"
+                        : "border-green-200 text-green-700 hover:border-green-400"
+                    }`}
+                  >
+                    {n} Players
+                  </button>
+                ))}
+              </div>
+              <p className="text-[10px] text-slate-400 mt-1 text-center">
+                {TOTAL_SEATS} seats randomly distributed across that many
+                parties.
+              </p>
+            </div>
+          )}
 
-          <div className="flex items-center">
-            <div className="flex-grow border-t border-green-200" />
-            <span className="mx-4 text-green-400 text-sm">OR</span>
-            <div className="flex-grow border-t border-green-200" />
-          </div>
-
-          <input
-            type="text"
-            value={inputCode}
-            onChange={(e) => setInputCode(e.target.value.toUpperCase())}
-            className="w-full bg-green-50 border border-green-200 p-3 rounded-xl text-center tracking-widest outline-none"
-            placeholder="4-Letter Code"
-            maxLength={4}
-          />
-          <button
-            onClick={() => handleJoinGame(inputCode)}
-            className="w-full bg-green-100 text-green-700 py-3 rounded-xl font-semibold hover:bg-green-200 transition-all"
-          >
-            Join Game
-          </button>
+          {/* ── Actions ── */}
+          {inputCode.trim() ? (
+            /* Joining flow — just the join button */
+            <button
+              onClick={() => handleJoinGame(inputCode)}
+              className="w-full bg-green-600 text-white py-3 rounded-xl font-semibold shadow-md hover:bg-green-700 transition-all"
+            >
+              Join Session
+            </button>
+          ) : (
+            /* Creating flow */
+            <button
+              onClick={handleCreateGame}
+              className="w-full bg-green-600 text-white py-3 rounded-xl font-semibold shadow-md hover:bg-green-700 transition-all"
+            >
+              Create Session
+            </button>
+          )}
         </div>
       )}
 

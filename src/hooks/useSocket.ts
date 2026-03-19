@@ -7,7 +7,9 @@ export const useSocket = (lobbyId: string | null, playerName: string = "User") =
 
   useEffect(() => {
     if (!lobbyId) return;
-    const ws = new WebSocket(`ws://localhost:3000/ws?lobbyId=${lobbyId}&playerName=${encodeURIComponent(playerName)}`);
+    // Use environment variable for WebSocket URL, default to localhost for development
+    const wsUrl = import.meta.env.VITE_WS_URL || `ws://localhost:3000/ws`;
+    const ws = new WebSocket(`${wsUrl}?lobbyId=${lobbyId}&playerName=${encodeURIComponent(playerName)}`);
 
     ws.onopen = () => setIsConnected(true); // Signal readiness
     ws.onmessage = (event) => setLastMessage(JSON.parse(event.data));
