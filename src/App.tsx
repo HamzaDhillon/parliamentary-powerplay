@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from "react";
+/* eslint-disable react-hooks/set-state-in-effect */
 import type {
   Party,
   ActiveBill,
@@ -206,6 +207,15 @@ export default function App() {
       sendMessage("REQUEST_SETUP", { requesterId: MY_PLAYER_ID });
     }
   }, [isConnected, inGame, isCreator, parties.length, sendMessage]);
+
+  // If we reconnect and get a full snapshot, restore our own chosen party.
+  useEffect(() => {
+    const pid = playerParties[MY_PLAYER_ID];
+    if (!pid) return;
+    const restored = parties.find((p) => p.id === pid) ?? null;
+    setMyParty((prev) => (prev?.id === pid ? prev : restored));
+  }, [playerParties, parties]);
+
   // ─── Bill resolution ──────────────────────────────────────────────────────
   useEffect(() => {
     if (!activeBill) return;
@@ -285,6 +295,23 @@ export default function App() {
   useEffect(() => {
     if (!lastMessage) return;
     const { type, payload } = lastMessage;
+
+    if (type === "SYNC_STATE") {
+      const state = payload ?? {};
+      setParties(state.parties ?? []);
+      setWaitingForSetup(false);
+      setInGame(true);
+      if (state.playerCount === 3 || state.playerCount === 4 || state.playerCount === 5) {
+        setPlayerCount(state.playerCount);
+      }
+      setPartyOwnership(state.partyOwnership ?? {});
+      setPlayerParties(state.playerParties ?? {});
+      setAlliances(state.alliances ?? {});
+      setCurrentGovernment(state.currentGovernment ?? null);
+      setActiveBill(state.activeBill ?? null);
+      setConstitutionalCrisis(state.constitutionalCrisis ?? null);
+      return;
+    }
 
     // ── GAME_SETUP: creator broadcasts party list; joiners receive it ──────
     if (type === "GAME_SETUP") {
